@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # implement the harris detector algorithm to detect corners in an image
-def harris_detector(image, k=0.04, threshold=0.01):
+def harris_detector(image, k=0.04, threshold=0.001):
     
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = np.float32(gray)
@@ -42,8 +42,15 @@ def orb_detection(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     orb = cv2.ORB_create()  # Initialize ORB detector
     keypoints, descriptors = orb.detectAndCompute(gray, None)
-    output = cv2.drawKeypoints(image, keypoints, None, flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    output = image.copy()
+    for kp in keypoints:
+        x, y = kp.pt
+        cv2.circle(output, (int(x), int(y)), 2, (0, 255, 0), -1)  # Draw smaller circles with radius 2
     return output, keypoints
+    # orb = cv2.ORB_create()  # Initialize ORB detector
+    # keypoints, descriptors = orb.detectAndCompute(gray, None)
+    # output = cv2.drawKeypoints(image, keypoints, None, flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    # return output, keypoints
 
 
 

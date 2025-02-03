@@ -14,12 +14,12 @@ def initialize_camera(camera_index=0):
         
     return cap
 
-def process_frame(frame):
+def process_frame(frame, cutoff):
     # Apply high pass filter
-    frame = high_pass_filter(frame, cutoff=10)
+    frame = high_pass_filter(frame, cutoff)
     return frame
 
-def high_pass_filter(frame, cutoff=40):
+def high_pass_filter(frame, cutoff):
     if len(frame.shape) == 3:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
@@ -55,14 +55,18 @@ def frequency_domain(frame):
     
     # Perform FFT and shift the zero frequency component to the center
     f = np.fft.fft2(frame)
-    fshift = np.fft.fftshift(f)
+    
     
     # Get magnitude spectrum and normalize for display
-    magnitude_spectrum = np.abs(fshift)
-    magnitude_spectrum = np.log(1 + magnitude_spectrum)  # Log scale for visibility
+    magnitude_spectrum = np.abs(f)
+    magnitude_spectrum = 5 * np.log(1 + magnitude_spectrum)  # Log scale for visibility
     magnitude_spectrum = np.uint8(np.clip(magnitude_spectrum, 0, 255))
     
     return magnitude_spectrum
+
+def on_trackbar(val):
+    global cutoff
+    cutoff = max(1, val)
 
 
 def main():
@@ -74,7 +78,11 @@ def main():
     print("Camera feed started. Press 'q' to quit.")
     # Start capturing and processing frames
     display_frequency = False
-    
+    feature_detector = False
+    global cutoff
+    cutoff = 30
+    cv2.namedWindow("Processed Frame")
+    cv2.createTrackbar("Cutoff", "Processed Frame", cutoff, 100, on_trackbar)
     while True:
         # Capture frame-by-frame
         ret, frame = cap.read()
@@ -83,48 +91,35 @@ def main():
         if not ret:
             print("Error: Can't receive frame from camera.")
             break
-
+        result1, response1 = harris_detector(frame)
+        result2, response2 = orb_detection(frame)
         # Process the frame with a chosen (set) of functions
-        output_frame = process_frame(frame)
+        # output_frame = process_frame(frame, cutoff)
+        
         
         if display_frequency:
             output_frame = frequency_domain(output_frame)
-            frame = frequency_domain(frame)
+        else:
+            output_frame = process_frame(frame, cutoff)
+            
 
         # Display the original frame
         cv2.imshow('Original Frame', frame)
-
         # Display the processed frame
         cv2.imshow('Processed Frame', output_frame)
+        
+        cv2.imshow("Harris Corners", result1)
+        cv2.imshow("ORB Keypoints", result2)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break  # Quit the application
         elif key == ord('t'):
             display_frequency = not display_frequency  # Toggle between spatial and frequency domain
+            
 
     # Clean up
     cap.release()
-    cv2.destroyAllWindows()
-    
-    image1 = cv2.imread('cat_1.jpg')
-    image2 = cv2.imread('cat_2.jpg')
-    
-    result1, response1 = harris_detector(image1)
-    result2, response2 = harris_detector(image2)
-    orb_result, orb_keypoints = orb_detection(image1)
-    orb_result2, orb_keypoints2 = orb_detection(image2)
-    
-    
-    cv2.imshow("Harris Corners - Image 1", result1)
-    cv2.imshow("Harris Corners - Image 2", result2)
-    cv2.imshow("Corner Response 1", response1)
-    cv2.imshow("Corner Response 2", response2)
-    
-    cv2.imshow("ORB Keypoints", orb_result)
-    cv2.imshow("ORB Keypoints 2", orb_result2)
-    
-    cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 
