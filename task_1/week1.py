@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 def initialize_camera(camera_index=0):
 	cap = cv2.VideoCapture(camera_index)
 
-	# Check if the cam is opened correctly
 	if not cap.isOpened():
 		print("Error: Could not open camera.")
 		return None
@@ -44,8 +43,8 @@ def plot_fov():
 
 
 def plot_projected_distance():
-	dx = 10  # World space distance between x1 and x2 (arbitrary units)
-	z_values = [100, 500, 1000]  # Different depths (arbitrary units)
+	dx = 10  # World space distance between x1 and x2 
+	z_values = [100, 500, 1000]  # Different depths
 	f_values = np.linspace(1, 100, 500)
 
 	plt.figure(figsize=(8, 5))
@@ -86,11 +85,9 @@ def main():
 	cap.release()
 	cv2.destroyAllWindows()
 
-	# Plot FOV and projected distance analysis
 	plot_fov()
 	plot_projected_distance()
 
-	# Clean up
 	cap.release()
 	cv2.destroyAllWindows()
 

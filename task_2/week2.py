@@ -7,7 +7,6 @@ from detectors import harris_detector, orb_detection
 def initialize_camera(camera_index=0):
     cap = cv2.VideoCapture(camera_index)
     
-    # Check if the cam is opened correctly
     if not cap.isOpened():
         print("Error: Could not open camera.")
         return None
@@ -15,7 +14,6 @@ def initialize_camera(camera_index=0):
     return cap
 
 def process_frame(frame, cutoff):
-    # Apply high pass filter
     frame = high_pass_filter(frame, cutoff)
     return frame
 
@@ -23,11 +21,9 @@ def high_pass_filter(frame, cutoff):
     if len(frame.shape) == 3:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
-    # Perform FFT and shift the zero frequency component to the center
     f = np.fft.fft2(frame)
     fshift = np.fft.fftshift(f)
     
-    # Create high-pass filter mask
     rows, cols = frame.shape
     crow, ccol = rows // 2, cols // 2
     mask = np.ones((rows, cols), np.uint8)
@@ -49,7 +45,6 @@ def high_pass_filter(frame, cutoff):
     return img_back
 
 def frequency_domain(frame):
-    # Convert to grayscale if not already in grayscale
     if len(frame.shape) == 3:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
